@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/client';
 import './LandingPage.css';
 
 const POPULAR_DESTINATIONS = [
@@ -10,7 +9,7 @@ const POPULAR_DESTINATIONS = [
     name: 'Tokyo',
     country: 'Japan',
     cost: '$$$ Luxury',
-    popularity: 96,
+    popularity: 98,
     image_url: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&auto=format&fit=crop&q=80',
   },
   {
@@ -18,7 +17,7 @@ const POPULAR_DESTINATIONS = [
     name: 'Paris',
     country: 'France',
     cost: '$$ Moderate',
-    popularity: 98,
+    popularity: 96,
     image_url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&auto=format&fit=crop&q=80',
   },
   {
@@ -34,7 +33,7 @@ const POPULAR_DESTINATIONS = [
     name: 'Bali',
     country: 'Indonesia',
     cost: '$ Budget',
-    popularity: 92,
+    popularity: 95,
     image_url: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&auto=format&fit=crop&q=80',
   },
   {
@@ -42,7 +41,7 @@ const POPULAR_DESTINATIONS = [
     name: 'New York',
     country: 'United States',
     cost: '$$$ Luxury',
-    popularity: 95,
+    popularity: 97,
     image_url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&auto=format&fit=crop&q=80',
   },
   {
@@ -50,20 +49,22 @@ const POPULAR_DESTINATIONS = [
     name: 'Barcelona',
     country: 'Spain',
     cost: '$$ Moderate',
-    popularity: 91,
+    popularity: 92,
     image_url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800&auto=format&fit=crop&q=80',
   },
 ];
 
 const CURATED_ACTIVITIES = [
-  { name: 'Eiffel Tower Guided Ascent', category: 'Sightseeing', cost: '$35.00', duration: '2 hours', icon: '📸' },
-  { name: 'Montmartre Bakery & Wine Walk', category: 'Food & Dining', cost: '$45.00', duration: '2.5 hours', icon: '🍕' },
-  { name: 'Mount Batur Volcano Sunrise Trek', category: 'Adventure', cost: '$40.00', duration: '6 hours', icon: '🧗' },
-  { name: 'Louvre Museum Masterpieces Tour', category: 'Culture & History', cost: '$22.00', duration: '3 hours', icon: '🏛️' },
+  { name: 'Eiffel Tower Guided Summit Ascent', category: 'Sightseeing', cost: '$35.00', duration: '2 hours', icon: '📸', city: 'Paris, France' },
+  { name: 'Montmartre Gourmet Bakery & Wine Tour', category: 'Food & Dining', cost: '$45.00', duration: '2.5 hours', icon: '🍕', city: 'Paris, France' },
+  { name: 'Mount Batur Active Volcano Sunrise Hike', category: 'Adventure', cost: '$40.00', duration: '6 hours', icon: '🧗', city: 'Bali, Indonesia' },
+  { name: 'Louvre Museum Masterpieces & History Walk', category: 'Culture & History', cost: '$22.00', duration: '3 hours', icon: '🏛️', city: 'Paris, France' },
+  { name: 'Shibuya & Harajuku Pop Culture Walking Tour', category: 'Culture & History', cost: '$30.00', duration: '2.5 hours', icon: '🎌', city: 'Tokyo, Japan' },
+  { name: 'Tsukiji Outer Market Fresh Sushi Tasting', category: 'Food & Dining', cost: '$50.00', duration: '2 hours', icon: '🍣', city: 'Tokyo, Japan' },
 ];
 
 export default function LandingPage() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [activeCategory, setActiveCategory] = useState('all');
@@ -79,6 +80,11 @@ export default function LandingPage() {
 
   return (
     <div className="landing-page">
+      {/* Background Aurora Glow Orbs */}
+      <div className="landing-ambient-glow landing-ambient-glow--1" />
+      <div className="landing-ambient-glow landing-ambient-glow--2" />
+      <div className="landing-ambient-glow landing-ambient-glow--3" />
+
       {/* ====================================================================
           1. NAVBAR
           ==================================================================== */}
@@ -95,7 +101,7 @@ export default function LandingPage() {
               <li><a href="#explore" className="landing-nav__link">Explore</a></li>
               <li><a href="#features" className="landing-nav__link">Features</a></li>
               <li><a href="#how-it-works" className="landing-nav__link">How It Works</a></li>
-              <li><a href="#about" className="landing-nav__link">About</a></li>
+              <li><a href="#why-globetrotter" className="landing-nav__link">Why Us</a></li>
             </ul>
           </nav>
 
@@ -125,16 +131,16 @@ export default function LandingPage() {
         <div className="landing-hero__container">
           <div className="landing-hero__text">
             <div className="landing-hero__badge">
-              <span>✈️ The Smart Multi-City Travel Planner</span>
+              <span>✨ Intelligent Multi-City Travel Planner</span>
             </div>
 
             <h1 className="landing-hero__title">
               Plan Your Journey, <br />
-              <span className="landing-hero__title-gradient">Your Way</span>
+              <span className="landing-hero__title-gradient">Your Way.</span>
             </h1>
 
             <p className="landing-hero__subtitle">
-              Design seamless multi-city trips, organize day-by-day itineraries, discover curated activities, and track your total travel budget in one unified workspace.
+              Design seamless multi-city trips, organize day-by-day itineraries, discover curated local activities, and track your total travel budget in one unified workspace.
             </p>
 
             <div className="landing-hero__cta-group">
@@ -165,8 +171,8 @@ export default function LandingPage() {
                   <span>📍 Stop 2: Kyoto, Japan</span>
                   <span style={{ color: '#10b981', fontWeight: 700 }}>3 Days • 3 Activities</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
-                  <span>💰 Target Budget: $2,800</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border)', paddingTop: '0.85rem' }}>
+                  <span>💰 Target Budget: <strong>$2,800</strong></span>
                   <span>📅 Jun 1 → Jun 8</span>
                 </div>
               </div>
@@ -184,10 +190,10 @@ export default function LandingPage() {
       <section id="explore" className="landing-section">
         <div className="landing-section__container">
           <div className="landing-section__header">
-            <span className="landing-section__badge">Global Catalog</span>
+            <span className="landing-section__badge">Curated Global Destinations</span>
             <h2 className="landing-section__title">Explore the World</h2>
             <p className="landing-section__subtitle">
-              Browse top destinations with real-time cost indices and popularity scores to find your next adventure.
+              Browse top destinations with real-time cost indices and traveler popularity scores to find your next adventure.
             </p>
           </div>
 
@@ -198,7 +204,7 @@ export default function LandingPage() {
                   className="dest-card__image"
                   style={{ backgroundImage: `url(${city.image_url})` }}
                 >
-                  <span className="dest-card__popularity">★ {city.popularity}% match</span>
+                  <span className="dest-card__popularity">★ {city.popularity}% Popularity</span>
                   <span className="dest-card__cost">{city.cost}</span>
                 </div>
                 <div className="dest-card__body">
@@ -218,43 +224,43 @@ export default function LandingPage() {
         <div className="landing-section__container">
           <div className="feature-split">
             <div className="feature-split__text">
-              <span className="feature-split__tag">Route Optimization</span>
+              <span className="feature-split__tag">Multi-City Engine</span>
               <h2 className="feature-split__title">Plan Multi-City Trips With Ease</h2>
               <p className="feature-split__desc">
                 Stop juggling messy spreadsheets. Add multiple destinations to a single journey, assign dates, and effortlessly reorder stops with one-click sequencing.
               </p>
               <ul className="feature-split__list">
-                <li className="feature-split__item">✅ Add multiple cities in sequential route order</li>
-                <li className="feature-split__item">✅ Automatic stay duration calculations</li>
-                <li className="feature-split__item">✅ Drag-free one-click stop reordering</li>
-                <li className="feature-split__item">✅ Custom transit notes and hotel stays</li>
+                <li className="feature-split__item">✨ Add multiple cities in sequential route order</li>
+                <li className="feature-split__item">⏱️ Automatic stay duration calculations</li>
+                <li className="feature-split__item">🔄 Drag-free one-click stop reordering</li>
+                <li className="feature-split__item">🏨 Custom transit notes, hotel stays, and flight details</li>
               </ul>
             </div>
 
             <div className="feature-split__preview-box">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ padding: '0.85rem', background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ padding: '1rem', background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <strong style={{ color: '#1e3a8a' }}>Stop #1: Paris, France</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Jun 1 → Jun 5 (5 Days)</div>
+                    <strong style={{ color: '#4f46e5', fontSize: '1.05rem' }}>Stop #1: Paris, France</strong>
+                    <div style={{ fontSize: '0.825rem', color: 'var(--color-text-secondary)', marginTop: '0.2rem' }}>Jun 1 → Jun 5 (5 Days)</div>
                   </div>
-                  <span style={{ fontSize: '1.2rem' }}>✈️</span>
+                  <span style={{ fontSize: '1.4rem' }}>✈️</span>
                 </div>
 
-                <div style={{ padding: '0.85rem', background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '1rem', background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.2)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <strong style={{ color: '#1e3a8a' }}>Stop #2: Rome, Italy</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Jun 5 → Jun 9 (4 Days)</div>
+                    <strong style={{ color: '#0891b2', fontSize: '1.05rem' }}>Stop #2: Rome, Italy</strong>
+                    <div style={{ fontSize: '0.825rem', color: 'var(--color-text-secondary)', marginTop: '0.2rem' }}>Jun 5 → Jun 9 (4 Days)</div>
                   </div>
-                  <span style={{ fontSize: '1.2rem' }}>🚆</span>
+                  <span style={{ fontSize: '1.4rem' }}>🚆</span>
                 </div>
 
-                <div style={{ padding: '0.85rem', background: '#f0f7ff', border: '1px solid #bfdbfe', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '1rem', background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.2)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <strong style={{ color: '#1e3a8a' }}>Stop #3: Barcelona, Spain</strong>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Jun 9 → Jun 14 (5 Days)</div>
+                    <strong style={{ color: '#e11d48', fontSize: '1.05rem' }}>Stop #3: Barcelona, Spain</strong>
+                    <div style={{ fontSize: '0.825rem', color: 'var(--color-text-secondary)', marginTop: '0.2rem' }}>Jun 9 → Jun 14 (5 Days)</div>
                   </div>
-                  <span style={{ fontSize: '1.2rem' }}>🏖️</span>
+                  <span style={{ fontSize: '1.4rem' }}>🏖️</span>
                 </div>
               </div>
             </div>
@@ -276,20 +282,22 @@ export default function LandingPage() {
           </div>
 
           {/* Filter Chips */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.65rem', marginBottom: '2.75rem', flexWrap: 'wrap' }}>
             {['all', 'sightseeing', 'food', 'adventure', 'culture'].map((cat) => (
               <button
                 key={cat}
                 type="button"
-                className={`preset-chip ${activeCategory === cat ? 'preset-chip--active' : ''}`}
                 style={{
-                  padding: '0.5rem 1.25rem',
-                  fontSize: '0.9rem',
-                  background: activeCategory === cat ? 'var(--color-primary)' : 'var(--color-surface)',
+                  padding: '0.55rem 1.4rem',
+                  fontSize: '0.925rem',
+                  fontWeight: 600,
+                  background: activeCategory === cat ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'var(--color-surface)',
                   color: activeCategory === cat ? 'white' : 'var(--color-text)',
-                  borderColor: activeCategory === cat ? 'var(--color-primary)' : 'var(--color-border)',
+                  border: activeCategory === cat ? 'none' : '1px solid var(--color-border)',
                   cursor: 'pointer',
                   borderRadius: '9999px',
+                  boxShadow: activeCategory === cat ? '0 4px 15px rgba(99, 102, 241, 0.4)' : 'var(--shadow-sm)',
+                  transition: 'all 0.2s ease',
                 }}
                 onClick={() => setActiveCategory(cat)}
               >
@@ -298,29 +306,30 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.75rem' }}>
             {filteredActivities.map((act) => (
               <div
                 key={act.name}
                 style={{
                   background: 'var(--color-surface)',
                   border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '1.5rem',
+                  borderRadius: '16px',
+                  padding: '1.65rem',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.5rem',
+                  gap: '0.6rem',
                   boxShadow: 'var(--shadow-sm)',
+                  transition: 'transform 0.2s ease, border-color 0.2s ease',
                 }}
               >
-                <span style={{ fontSize: '2rem' }}>{act.icon}</span>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>{act.name}</h3>
+                <span style={{ fontSize: '2.25rem' }}>{act.icon}</span>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 750 }}>{act.name}</h3>
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                  🏷️ {act.category} • ⏱️ {act.duration}
+                  📍 {act.city} • ⏱️ {act.duration}
                 </span>
-                <div style={{ marginTop: 'auto', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--color-success)', fontSize: '1.1rem' }}>{act.cost}</span>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600 }}>+ Add to Trip</span>
+                <div style={{ marginTop: 'auto', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span style={{ fontWeight: 800, color: 'var(--color-success)', fontSize: '1.15rem' }}>{act.cost}</span>
+                  <span style={{ fontSize: '0.825rem', color: '#6366f1', fontWeight: 700 }}>+ Add to Trip</span>
                 </div>
               </div>
             ))}
@@ -335,33 +344,33 @@ export default function LandingPage() {
         <div className="landing-section__container">
           <div className="feature-split feature-split--reverse">
             <div className="feature-split__text">
-              <span className="feature-split__tag">Day-by-Day Scheduling</span>
+              <span className="feature-split__tag">Day-by-Day Precision</span>
               <h2 className="feature-split__title">Build Your Perfect Itinerary</h2>
               <p className="feature-split__desc">
                 Organize every day with specific time slots, activities, and transit markers. Switch between Builder Mode and a clean presentation Itinerary View anytime.
               </p>
               <ul className="feature-split__list">
-                <li className="feature-split__item">📅 Day-by-day structured activity list</li>
+                <li className="feature-split__item">🗓️ Day-by-day structured activity schedule</li>
                 <li className="feature-split__item">⏰ Custom start times and duration tracking</li>
-                <li className="feature-split__item">👁️ Clean presentation view (skip calendar complexity)</li>
+                <li className="feature-split__item">👁️ Clean presentation view (skips calendar complexity)</li>
                 <li className="feature-split__item">🖨️ One-click Print & PDF export</li>
               </ul>
             </div>
 
             <div className="feature-split__preview-box">
-              <div style={{ borderLeft: '3px solid var(--color-primary)', paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--color-primary)' }}>
+              <div style={{ borderLeft: '3px solid #6366f1', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#4f46e5' }}>
                   Day 1 • Jun 1 — Tokyo Arrival
                 </div>
-                <div style={{ background: '#f8fafc', padding: '0.65rem 0.9rem', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between' }}>
                   <span>⏰ 10:00 AM • 📸 Shibuya Crossing Walking Tour</span>
                   <strong>$30.00</strong>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '0.65rem 0.9rem', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>⏰ 02:30 PM • 🍕 Tsukiji Market Street Food</span>
+                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>⏰ 02:30 PM • 🍣 Tsukiji Market Street Food</span>
                   <strong>$50.00</strong>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '0.65rem 0.9rem', borderRadius: '6px', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.875rem', display: 'flex', justifyContent: 'space-between' }}>
                   <span>⏰ 06:00 PM • 🏛️ teamLab Planets Digital Art</span>
                   <strong>$28.00</strong>
                 </div>
@@ -384,7 +393,7 @@ export default function LandingPage() {
                 Set a target budget and monitor real-time breakdowns across Transport, Accommodation, Activities, Meals, and Miscellaneous expenses.
               </p>
               <ul className="feature-split__list">
-                <li className="feature-split__item">💰 Target budget comparison and variance</li>
+                <li className="feature-split__item">💰 Target budget comparison and live variance</li>
                 <li className="feature-split__item">📊 Automated category breakdown (Stay, Meals, Transport)</li>
                 <li className="feature-split__item">⚠️ Over-budget visual alert highlights</li>
               </ul>
@@ -393,15 +402,15 @@ export default function LandingPage() {
             <div className="feature-split__preview-box">
               <div className="budget-widget-preview">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontWeight: 700, fontSize: '1.2rem' }}>Total Spent: $1,620</span>
-                  <span style={{ color: 'var(--color-success)', fontWeight: 600, fontSize: '0.9rem' }}>$880 Under Target</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.25rem' }}>Total Spent: $1,620</span>
+                  <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.95rem' }}>$880 Under Target</span>
                 </div>
 
                 <div className="budget-widget-bar">
-                  <div className="budget-widget-segment" style={{ width: '40%', background: '#1a73e8' }} />
+                  <div className="budget-widget-segment" style={{ width: '40%', background: '#6366f1' }} />
                   <div className="budget-widget-segment" style={{ width: '25%', background: '#10b981' }} />
                   <div className="budget-widget-segment" style={{ width: '20%', background: '#f59e0b' }} />
-                  <div className="budget-widget-segment" style={{ width: '15%', background: '#8b5cf6' }} />
+                  <div className="budget-widget-segment" style={{ width: '15%', background: '#ec4899' }} />
                 </div>
 
                 <div className="budget-widget-grid">
@@ -448,15 +457,14 @@ export default function LandingPage() {
             </div>
 
             <div className="feature-split__preview-box" style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔗</div>
-              <h3 style={{ fontSize: '1.15rem', marginBottom: '0.5rem' }}>https://globetrotter.app/trips/share/tokyo-2026</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '2.75rem', marginBottom: '0.75rem' }}>🔗</div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 700 }}>https://globetrotter.app/trips/share/tokyo-2026</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
                 Anyone with this link can view your itinerary without signing in.
               </p>
               <button
                 type="button"
-                className="preset-chip"
-                style={{ background: 'var(--color-primary)', color: 'white', border: 'none', padding: '0.5rem 1.25rem', fontWeight: 600 }}
+                style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', padding: '0.65rem 1.5rem', fontWeight: 700, borderRadius: '8px', cursor: 'pointer' }}
                 onClick={() => alert('Demo Share Link Copied!')}
               >
                 📋 Copy Share Link
@@ -469,7 +477,7 @@ export default function LandingPage() {
       {/* ====================================================================
           9. WHY GLOBETROTTER?
           ==================================================================== */}
-      <section id="about" className="landing-section">
+      <section id="why-globetrotter" className="landing-section">
         <div className="landing-section__container">
           <div className="landing-section__header">
             <span className="landing-section__badge">Key Advantages</span>
@@ -481,7 +489,7 @@ export default function LandingPage() {
 
           <div className="why-grid">
             <div className="why-card">
-              <div className="why-card__icon">🗺️</div>
+              <div className="why-card__icon why-card__icon--1">🗺️</div>
               <h3 className="why-card__title">Personalized Planning</h3>
               <p className="why-card__text">
                 Custom itineraries tailored to your exact dates, cities, and pace of exploration.
@@ -489,7 +497,7 @@ export default function LandingPage() {
             </div>
 
             <div className="why-card">
-              <div className="why-card__icon">🚆</div>
+              <div className="why-card__icon why-card__icon--2">🚆</div>
               <h3 className="why-card__title">Multi-City Support</h3>
               <p className="why-card__text">
                 Effortlessly manage complex routes across multiple countries and destinations.
@@ -497,7 +505,7 @@ export default function LandingPage() {
             </div>
 
             <div className="why-card">
-              <div className="why-card__icon">🎟️</div>
+              <div className="why-card__icon why-card__icon--3">🎟️</div>
               <h3 className="why-card__title">Activity Discovery</h3>
               <p className="why-card__text">
                 Browse curated sightseeing tours, foodie walks, and outdoor adventures per city.
@@ -505,7 +513,7 @@ export default function LandingPage() {
             </div>
 
             <div className="why-card">
-              <div className="why-card__icon">💰</div>
+              <div className="why-card__icon why-card__icon--4">💰</div>
               <h3 className="why-card__title">Budget Awareness</h3>
               <p className="why-card__text">
                 Real-time expense categorization keeps you informed and on track financially.
@@ -513,7 +521,7 @@ export default function LandingPage() {
             </div>
 
             <div className="why-card">
-              <div className="why-card__icon">🤝</div>
+              <div className="why-card__icon why-card__icon--5">🤝</div>
               <h3 className="why-card__title">Easy Sharing</h3>
               <p className="why-card__text">
                 Share read-only itineraries and let friends clone your plans with "Copy Trip".
@@ -558,7 +566,7 @@ export default function LandingPage() {
               <li><a href="#explore" className="landing-footer__link">Popular Destinations</a></li>
               <li><a href="#features" className="landing-footer__link">Multi-City Routes</a></li>
               <li><a href="#explore" className="landing-footer__link">Curated Activities</a></li>
-              <li><a href="#about" className="landing-footer__link">Travel Guides</a></li>
+              <li><a href="#why-globetrotter" className="landing-footer__link">Travel Guides</a></li>
             </ul>
           </div>
 
@@ -575,10 +583,10 @@ export default function LandingPage() {
           <div>
             <h4 className="landing-footer__heading">Company</h4>
             <ul className="landing-footer__list">
-              <li><a href="#about" className="landing-footer__link">About Us</a></li>
-              <li><a href="#about" className="landing-footer__link">Contact Support</a></li>
-              <li><a href="#about" className="landing-footer__link">Privacy Policy</a></li>
-              <li><a href="#about" className="landing-footer__link">Terms of Service</a></li>
+              <li><a href="#why-globetrotter" className="landing-footer__link">About Us</a></li>
+              <li><a href="#why-globetrotter" className="landing-footer__link">Contact Support</a></li>
+              <li><a href="#why-globetrotter" className="landing-footer__link">Privacy Policy</a></li>
+              <li><a href="#why-globetrotter" className="landing-footer__link">Terms of Service</a></li>
             </ul>
           </div>
         </div>
