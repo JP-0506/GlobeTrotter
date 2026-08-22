@@ -1,0 +1,164 @@
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--navbar-height) - 4rem);
+  padding: 1.5rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 2rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header__icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.auth-header__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.auth-header__subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-error-banner {
+  background: #fde8e8;
+  border: 1px solid #f8b4b4;
+  color: var(--color-danger);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-success-banner {
+  background: #def7ec;
+  border: 1px solid #bcf0da;
+  color: var(--color-success);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+.auth-options {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-top: -0.5rem;
+}
+
+.auth-link-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+
+.auth-link-btn:hover {
+  text-decoration: underline;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.75rem;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.25rem;
+}
+
+.auth-footer a {
+  font-weight: 600;
+  margin-left: 0.35rem;
+}
+
+/* Modal styles for Forgot Password */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.modal-header {
+  margin-bottom: 1.25rem;
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
