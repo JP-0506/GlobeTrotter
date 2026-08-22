@@ -20,11 +20,11 @@
   --color-success: #1e8e3e;
 
   /* ---- Neutrals ---- */
-  --color-bg: #f5f7fa;
+  --color-bg: #f8fafc;
   --color-surface: #ffffff;
-  --color-text: #202124;
-  --color-text-secondary: #5f6368;
-  --color-border: #dadce0;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #e2e8f0;
 
   /* ---- Typography ---- */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
@@ -54,8 +54,8 @@
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   /* ---- Transitions ---- */
@@ -63,6 +63,6 @@
   --transition-base: 250ms ease;
 
   /* ---- Layout ---- */
-  --navbar-height: 60px;
-  --max-content-width: 1200px;
+  --navbar-height: 64px;
+  --max-content-width: 1400px;
 }
