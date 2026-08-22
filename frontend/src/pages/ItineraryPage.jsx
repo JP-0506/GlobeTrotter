@@ -7,6 +7,30 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import './ItineraryPage.css';
 
+// Safe helper functions for Stop city data resolution
+const getStopCityId = (stop) => {
+  if (!stop) return null;
+  if (stop.city_details?.city_id) return stop.city_details.city_id;
+  if (typeof stop.city === 'object' && stop.city?.city_id) return stop.city.city_id;
+  if (typeof stop.city === 'number') return stop.city;
+  return null;
+};
+
+const getStopCityName = (stop) => {
+  if (!stop) return 'Destination';
+  if (stop.city_details?.name) return stop.city_details.name;
+  if (typeof stop.city === 'object' && stop.city?.name) return stop.city.name;
+  if (stop.city_name) return stop.city_name;
+  return 'Destination';
+};
+
+const getStopCountry = (stop) => {
+  if (!stop) return '';
+  if (stop.city_details?.country) return stop.city_details.country;
+  if (typeof stop.city === 'object' && stop.city?.country) return stop.city.country;
+  return '';
+};
+
 export default function ItineraryPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -44,6 +68,7 @@ export default function ItineraryPage() {
   const [activityTime, setActivityTime] = useState('10:00');
   const [costOverride, setCostOverride] = useState('');
   const [activityLoading, setActivityLoading] = useState(false);
+  const [activityFetching, setActivityFetching] = useState(false);
   const [activityError, setActivityError] = useState('');
 
   useEffect(() => {
@@ -218,29 +243,44 @@ export default function ItineraryPage() {
     setActivityError('');
     setCityActivities([]);
 
-    if (dayInfo.stop?.city?.city_id) {
+    const cityId = getStopCityId(dayInfo.stop);
+
+    if (cityId) {
       try {
-        const res = await api.get(`/cities/${dayInfo.stop.city.city_id}/activities`);
-        setCityActivities(res.data || []);
-        if (res.data?.length > 0) {
-          setSelectedActivityId(res.data[0].activity_id);
-          setCostOverride(res.data[0].cost || '0.00');
+        setActivityFetching(true);
+        const res = await api.get(`/cities/${cityId}/activities`);
+        const acts = res.data || [];
+        setCityActivities(acts);
+        if (acts.length > 0) {
+          setSelectedActivityId(String(acts[0].activity_id));
+          setCostOverride(acts[0].cost || '0.00');
         }
       } catch (err) {
         console.error('Failed to load city activities', err);
+      } finally {
+        setActivityFetching(false);
       }
     }
   };
 
   const handleSelectActivity = (act) => {
-    setSelectedActivityId(act.activity_id);
+    setSelectedActivityId(String(act.activity_id));
     setCostOverride(act.cost || '0.00');
+  };
+
+  const handleDropdownSelect = (e) => {
+    const actId = e.target.value;
+    setSelectedActivityId(actId);
+    const act = cityActivities.find((a) => String(a.activity_id) === String(actId));
+    if (act) {
+      setCostOverride(act.cost || '0.00');
+    }
   };
 
   const handleSaveActivity = async (e) => {
     e.preventDefault();
     if (!selectedActivityId) {
-      setActivityError('Please select an activity from the catalog.');
+      setActivityError('Please select an activity from the dropdown list.');
       return;
     }
     if (!activeDayModal?.stop) {
@@ -255,7 +295,7 @@ export default function ItineraryPage() {
         activity: Number(selectedActivityId),
         scheduled_date: activeDayModal.dateStr,
         start_time: activityTime ? `${activityTime}:00` : null,
-        cost_override: costOverride ? Number(costOverride) : undefined,
+        cost_override: costOverride !== '' ? Number(costOverride) : undefined,
         sequence_order: 1,
       });
 
@@ -299,7 +339,8 @@ export default function ItineraryPage() {
       (trip.stops || []).forEach((s) => {
         (s.activities || []).forEach((act) => {
           if (act.scheduled_date === dateStr) {
-            scheduledActs.push({ ...act, stopCity: s.city?.name });
+            const cityName = getStopCityName(s);
+            scheduledActs.push({ ...act, stopCity: cityName });
           }
         });
       });
@@ -443,67 +484,74 @@ export default function ItineraryPage() {
               </EmptyState>
             ) : (
               <div className="stops-timeline">
-                {stops.map((stop, idx) => (
-                  <div key={stop.stop_id} className="stop-pill">
-                    <div className="stop-pill__top">
-                      <span className="stop-pill__order">Stop #{idx + 1}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                        📍 {stop.city?.country}
-                      </span>
-                    </div>
+                {stops.map((stop, idx) => {
+                  const cityName = getStopCityName(stop);
+                  const countryName = getStopCountry(stop);
 
-                    <div className="stop-pill__city">{stop.city?.name}</div>
-
-                    <div className="stop-pill__dates">
-                      <span>📅</span>
-                      <span>{stop.arrival_date} → {stop.departure_date}</span>
-                    </div>
-
-                    {stop.notes && (
-                      <div className="stop-pill__notes">
-                        "{stop.notes}"
+                  return (
+                    <div key={stop.stop_id} className="stop-pill">
+                      <div className="stop-pill__top">
+                        <span className="stop-pill__order">Stop #{idx + 1}</span>
+                        {countryName && (
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                            📍 {countryName}
+                          </span>
+                        )}
                       </div>
-                    )}
 
-                    <div className="stop-pill__actions">
-                      <button
-                        type="button"
-                        className="stop-pill__btn"
-                        disabled={idx === 0}
-                        onClick={() => handleMoveStop(idx, -1)}
-                        title="Move Left"
-                      >
-                        ◀
-                      </button>
-                      <button
-                        type="button"
-                        className="stop-pill__btn"
-                        disabled={idx === stops.length - 1}
-                        onClick={() => handleMoveStop(idx, 1)}
-                        title="Move Right"
-                      >
-                        ▶
-                      </button>
-                      <button
-                        type="button"
-                        className="stop-pill__btn"
-                        onClick={(e) => handleOpenEditStop(stop, e)}
-                        title="Edit Dates / Notes"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        type="button"
-                        className="stop-pill__btn"
-                        style={{ color: 'var(--color-danger)', marginLeft: 'auto' }}
-                        onClick={() => handleDeleteStop(stop.stop_id)}
-                        title="Delete Stop"
-                      >
-                        🗑️
-                      </button>
+                      <div className="stop-pill__city">{cityName}</div>
+
+                      <div className="stop-pill__dates">
+                        <span>📅</span>
+                        <span>{stop.arrival_date} → {stop.departure_date}</span>
+                      </div>
+
+                      {stop.notes && (
+                        <div className="stop-pill__notes">
+                          "{stop.notes}"
+                        </div>
+                      )}
+
+                      <div className="stop-pill__actions">
+                        <button
+                          type="button"
+                          className="stop-pill__btn"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveStop(idx, -1)}
+                          title="Move Left"
+                        >
+                          ◀
+                        </button>
+                        <button
+                          type="button"
+                          className="stop-pill__btn"
+                          disabled={idx === stops.length - 1}
+                          onClick={() => handleMoveStop(idx, 1)}
+                          title="Move Right"
+                        >
+                          ▶
+                        </button>
+                        <button
+                          type="button"
+                          className="stop-pill__btn"
+                          onClick={(e) => handleOpenEditStop(stop, e)}
+                          title="Edit Dates / Notes"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          type="button"
+                          className="stop-pill__btn"
+                          style={{ color: 'var(--color-danger)', marginLeft: 'auto' }}
+                          onClick={() => handleDeleteStop(stop.stop_id)}
+                          title="Delete Stop"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
@@ -521,84 +569,89 @@ export default function ItineraryPage() {
               </div>
             </div>
 
-            {daysList.map((day) => (
-              <div key={day.dateStr} className="day-card">
-                <div className="day-card__header">
-                  <div className="day-card__title-row">
-                    <span className="day-card__day-badge">Day {day.dayNumber}</span>
-                    <span className="day-card__date">{day.dateStr}</span>
-                    {day.stop ? (
-                      <span className="day-card__city-tag">
-                        📍 {day.stop.city?.name}, {day.stop.city?.country}
-                      </span>
-                    ) : (
-                      <span className="day-card__city-tag" style={{ color: 'var(--color-danger)', borderColor: '#f8b4b4' }}>
-                        ⚠️ No Stop Assigned
-                      </span>
+            {daysList.map((day) => {
+              const stopCityName = getStopCityName(day.stop);
+              const stopCountryName = getStopCountry(day.stop);
+
+              return (
+                <div key={day.dateStr} className="day-card">
+                  <div className="day-card__header">
+                    <div className="day-card__title-row">
+                      <span className="day-card__day-badge">Day {day.dayNumber}</span>
+                      <span className="day-card__date">{day.dateStr}</span>
+                      {day.stop ? (
+                        <span className="day-card__city-tag">
+                          📍 {stopCityName}{stopCountryName ? `, ${stopCountryName}` : ''}
+                        </span>
+                      ) : (
+                        <span className="day-card__city-tag" style={{ color: 'var(--color-danger)', borderColor: '#f8b4b4' }}>
+                          ⚠️ No Stop Assigned
+                        </span>
+                      )}
+                    </div>
+
+                    {day.stop && (
+                      <Button
+                        variant="secondary"
+                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
+                        onClick={() => handleOpenAddActivity(day)}
+                      >
+                        + Add Activity
+                      </Button>
                     )}
                   </div>
 
-                  {day.stop && (
-                    <Button
-                      variant="secondary"
-                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.85rem' }}
-                      onClick={() => handleOpenAddActivity(day)}
-                    >
-                      + Add Activity
-                    </Button>
-                  )}
-                </div>
+                  <div className="day-card__content">
+                    {day.activities.length === 0 ? (
+                      <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: '0.5rem 0' }}>
+                        No activities scheduled for this day.{' '}
+                        {day.stop ? 'Click "+ Add Activity" to add sightseeing, dining, or tours.' : 'Assign a city stop first.'}
+                      </p>
+                    ) : (
+                      <div className="activities-list">
+                        {day.activities.map((act) => {
+                          const actDetails = act.activity_details || act.activity || {};
+                          const effectivePrice = act.cost_override !== null && act.cost_override !== undefined
+                            ? act.cost_override
+                            : actDetails.cost || 0;
 
-                <div className="day-card__content">
-                  {day.activities.length === 0 ? (
-                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', margin: '0.5rem 0' }}>
-                      No activities scheduled for this day.{' '}
-                      {day.stop ? 'Click "+ Add Activity" to add sightseeing, dining, or tours.' : 'Assign a city stop first.'}
-                    </p>
-                  ) : (
-                    <div className="activities-list">
-                      {day.activities.map((act) => {
-                        const actDetails = act.activity || {};
-                        const effectivePrice = act.cost_override !== null && act.cost_override !== undefined
-                          ? act.cost_override
-                          : actDetails.cost || 0;
-
-                        return (
-                          <div key={act.trip_activity_id} className="activity-item">
-                            <div className="activity-item__left">
-                              <span className="activity-item__time">
-                                ⏰ {act.start_time ? act.start_time.slice(0, 5) : 'Flexible'}
-                              </span>
-                              <div className="activity-item__info">
-                                <span className="activity-item__name">{actDetails.name}</span>
-                                <span className="activity-item__category">
-                                  {getCategoryIcon(actDetails.category)} {actDetails.category || 'General'}
-                                  {actDetails.duration_minutes ? ` • ⏱️ ${actDetails.duration_minutes} mins` : ''}
+                          return (
+                            <div key={act.trip_activity_id} className="activity-item">
+                              <div className="activity-item__left">
+                                <span className="activity-item__time">
+                                  ⏰ {act.start_time ? act.start_time.slice(0, 5) : 'Flexible'}
                                 </span>
+                                <div className="activity-item__info">
+                                  <span className="activity-item__name">{actDetails.name}</span>
+                                  <span className="activity-item__category">
+                                    {getCategoryIcon(actDetails.category)} {actDetails.category || 'General'}
+                                    {actDetails.duration_minutes ? ` • ⏱️ ${actDetails.duration_minutes} mins` : ''}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="activity-item__right">
+                                <span className="activity-item__cost">
+                                  ${Number(effectivePrice).toFixed(2)}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="activity-item__delete"
+                                  onClick={() => handleDeleteActivity(act.trip_activity_id)}
+                                  title="Remove activity"
+                                >
+                                  🗑️
+                                </button>
                               </div>
                             </div>
-
-                            <div className="activity-item__right">
-                              <span className="activity-item__cost">
-                                ${Number(effectivePrice).toFixed(2)}
-                              </span>
-                              <button
-                                type="button"
-                                className="activity-item__delete"
-                                onClick={() => handleDeleteActivity(act.trip_activity_id)}
-                                title="Remove activity"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
         </>
       ) : (
@@ -624,58 +677,63 @@ export default function ItineraryPage() {
             </Button>
           </div>
 
-          {daysList.map((day) => (
-            <div key={day.dateStr} className="itinerary-view-day">
-              <div className="itinerary-view-day__header">
-                <span className="day-card__day-badge">Day {day.dayNumber}</span>
-                <span>{day.dateStr}</span>
-                {day.stop && (
-                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-primary)' }}>
-                    • {day.stop.city?.name}, {day.stop.city?.country}
-                  </span>
-                )}
-              </div>
+          {daysList.map((day) => {
+            const stopCityName = getStopCityName(day.stop);
+            const stopCountryName = getStopCountry(day.stop);
 
-              {day.activities.length === 0 ? (
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', fontStyle: 'italic' }}>
-                  Free day / Self-exploration
-                </p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  {day.activities.map((act) => {
-                    const actDetails = act.activity || {};
-                    const price = act.cost_override ?? actDetails.cost ?? 0;
-                    return (
-                      <div
-                        key={act.trip_activity_id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          background: '#f8fafc',
-                          padding: '0.65rem 1rem',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.925rem',
-                        }}
-                      >
-                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 600, color: 'var(--color-primary)', fontSize: '0.85rem' }}>
-                            {act.start_time ? act.start_time.slice(0, 5) : 'Flexible'}
-                          </span>
-                          <span style={{ fontWeight: 600 }}>{actDetails.name}</span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                            ({actDetails.category || 'Sightseeing'})
+            return (
+              <div key={day.dateStr} className="itinerary-view-day">
+                <div className="itinerary-view-day__header">
+                  <span className="day-card__day-badge">Day {day.dayNumber}</span>
+                  <span>{day.dateStr}</span>
+                  {day.stop && (
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-primary)' }}>
+                      • {stopCityName}{stopCountryName ? `, ${stopCountryName}` : ''}
+                    </span>
+                  )}
+                </div>
+
+                {day.activities.length === 0 ? (
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                    Free day / Self-exploration
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {day.activities.map((act) => {
+                      const actDetails = act.activity_details || act.activity || {};
+                      const price = act.cost_override ?? actDetails.cost ?? 0;
+                      return (
+                        <div
+                          key={act.trip_activity_id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            background: '#f8fafc',
+                            padding: '0.65rem 1rem',
+                            borderRadius: 'var(--radius-sm)',
+                            fontSize: '0.925rem',
+                          }}
+                        >
+                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--color-primary)', fontSize: '0.85rem' }}>
+                              {act.start_time ? act.start_time.slice(0, 5) : 'Flexible'}
+                            </span>
+                            <span style={{ fontWeight: 600 }}>{actDetails.name}</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                              ({actDetails.category || 'Sightseeing'})
+                            </span>
+                          </div>
+                          <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                            ${Number(price).toFixed(2)}
                           </span>
                         </div>
-                        <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>
-                          ${Number(price).toFixed(2)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </section>
       )}
 
@@ -754,8 +812,8 @@ export default function ItineraryPage() {
                 >
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={stopLoading}>
-                  {stopLoading ? <LoadingSpinner size="sm" /> : 'Add Stop'}
+                <Button variant="primary" type="submit" loading={stopLoading}>
+                  Add Stop
                 </Button>
               </div>
             </form>
@@ -768,7 +826,7 @@ export default function ItineraryPage() {
         <div className="modal-overlay" onClick={() => setEditingStop(null)}>
           <div className="modal-card" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Edit Stop: {editingStop.city?.name} ✏️</h2>
+              <h2 className="modal-title">Edit Stop: {getStopCityName(editingStop)} ✏️</h2>
               <p className="modal-subtitle">Update dates or travel notes for this stop</p>
             </div>
 
@@ -820,8 +878,8 @@ export default function ItineraryPage() {
                 >
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={editStopLoading}>
-                  {editStopLoading ? <LoadingSpinner size="sm" /> : 'Save Changes'}
+                <Button variant="primary" type="submit" loading={editStopLoading}>
+                  Save Changes
                 </Button>
               </div>
             </form>
@@ -832,11 +890,11 @@ export default function ItineraryPage() {
       {/* Modal: Add Activity to Day */}
       {activeDayModal && (
         <div className="modal-overlay" onClick={() => setActiveDayModal(null)}>
-          <div className="modal-card" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Schedule Activity 🎟️</h2>
               <p className="modal-subtitle">
-                Day {activeDayModal.dayNumber} ({activeDayModal.dateStr}) in {activeDayModal.stop?.city?.name}
+                Day {activeDayModal.dayNumber} ({activeDayModal.dateStr}) in <strong>{getStopCityName(activeDayModal.stop)}</strong>
               </p>
             </div>
 
@@ -848,29 +906,47 @@ export default function ItineraryPage() {
             )}
 
             <form onSubmit={handleSaveActivity} className="auth-form">
-              <div>
-                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', display: 'block', marginBottom: '0.35rem' }}>
-                  Select Activity in {activeDayModal.stop?.city?.name} *
+              {/* Activity Dropdown Selector */}
+              <div className="select-group">
+                <label className="select-group__label">
+                  Select Activity in {getStopCityName(activeDayModal.stop)} *
                 </label>
 
-                <input
-                  type="text"
-                  className="activity-search-input"
-                  placeholder="🔍 Filter activities by name or category..."
-                  value={activitySearch}
-                  onChange={(e) => setActivitySearch(e.target.value)}
-                />
-
-                {filteredCityActivities.length === 0 ? (
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: '0.5rem 0' }}>
-                    No activities found matching "{activitySearch}".
-                  </p>
+                {activityFetching ? (
+                  <div style={{ padding: '1rem', textAlign: 'center' }}>
+                    <LoadingSpinner size="sm" />
+                  </div>
                 ) : (
+                  <select
+                    className="select-group__input"
+                    value={selectedActivityId}
+                    onChange={handleDropdownSelect}
+                    required
+                  >
+                    <option value="">-- Choose an Activity --</option>
+                    {cityActivities.map((act) => (
+                      <option key={act.activity_id} value={act.activity_id}>
+                        {act.name} (${Number(act.cost).toFixed(2)} - {act.category})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Visual Card Selector if activities exist */}
+              {cityActivities.length > 0 && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.5rem 0 0.25rem 0' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                      Or click an activity card:
+                    </span>
+                  </div>
+
                   <div className="activity-picker-grid">
-                    {filteredCityActivities.map((act) => (
+                    {cityActivities.map((act) => (
                       <div
                         key={act.activity_id}
-                        className={`activity-picker-card ${selectedActivityId === act.activity_id ? 'activity-picker-card--selected' : ''}`}
+                        className={`activity-picker-card ${String(selectedActivityId) === String(act.activity_id) ? 'activity-picker-card--selected' : ''}`}
                         onClick={() => handleSelectActivity(act)}
                       >
                         <span className="activity-picker-card__title">{act.name}</span>
@@ -883,8 +959,8 @@ export default function ItineraryPage() {
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="form-row">
                 <Input
@@ -912,8 +988,8 @@ export default function ItineraryPage() {
                 >
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={activityLoading}>
-                  {activityLoading ? <LoadingSpinner size="sm" /> : 'Assign to Day'}
+                <Button variant="primary" type="submit" loading={activityLoading} disabled={!selectedActivityId}>
+                  Assign to Day
                 </Button>
               </div>
             </form>

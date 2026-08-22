@@ -130,7 +130,8 @@ class MeView(APIView):
         return self._update(request, partial=True)
 
     def _update(self, request, partial=False):
-        serializer = UserSerializer(request.user, data=request.data, partial=partial)
+        from .serializers import UserUpdateSerializer
+        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
         if serializer.is_valid():
             user = serializer.save()
             return api_response(success=True, data=UserSerializer(user).data)

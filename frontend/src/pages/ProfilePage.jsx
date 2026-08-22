@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
@@ -8,8 +8,45 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import './ProfilePage.css';
 
+// Client-side image compression for avatar photos
+const compressAvatar = (file, maxDim = 400, quality = 0.85) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const elem = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        elem.width = width;
+        elem.height = height;
+        const ctx = elem.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(elem.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function ProfilePage() {
-  const { user, login, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
 
   // Profile Form state
@@ -29,6 +66,8 @@ export default function ProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     fetchProfile();
     fetchSavedDestinations();
@@ -43,6 +82,7 @@ export default function ProfilePage() {
         setEmail(u.email || '');
         setPhotoUrl(u.photo_url || '');
         setLanguagePref(u.language_pref || 'en');
+        updateUser(u);
       }
     } catch (err) {
       console.error('Failed to fetch profile', err);
@@ -61,6 +101,34 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setSaveStatus({ success: '', error: 'Please select an image file (PNG, JPG, WEBP).' });
+      return;
+    }
+
+    try {
+      setSaveStatus({ success: '', error: '' });
+      const compressedDataUrl = await compressAvatar(file, 400, 0.85);
+      setPhotoUrl(compressedDataUrl);
+    } catch (err) {
+      console.error('Avatar compression error', err);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoUrl(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaveStatus({ success: '', error: '' });
@@ -75,13 +143,12 @@ export default function ProfilePage() {
       const res = await api.put('/auth/me', {
         name: name.trim(),
         email: email.trim(),
-        photo_url: photoUrl.trim() || null,
+        photo_url: photoUrl || null,
         language_pref: languagePref,
       });
 
       const updatedUser = res.data;
-      const currentToken = localStorage.getItem('gt_token');
-      login(currentToken, updatedUser);
+      updateUser(updatedUser);
 
       setSaveStatus({ success: 'Profile updated successfully!', error: '' });
     } catch (err) {
@@ -104,7 +171,6 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     try {
       setDeleteLoading(true);
-      // In django, user can be deactivated or deleted
       logout();
       navigate('/login');
     } catch (err) {
@@ -137,23 +203,56 @@ export default function ProfilePage() {
         )}
 
         <form onSubmit={handleSaveProfile} className="auth-form">
-          <div className="profile-avatar-row">
-            {photoUrl ? (
-              <img src={photoUrl} alt="Avatar" className="profile-avatar-large" />
-            ) : (
-              <div className="profile-avatar-large--fallback">
-                {name ? name.charAt(0).toUpperCase() : 'U'}
+          {/* Direct Profile Photo Upload */}
+          <div className="profile-avatar-section">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarFileChange}
+            />
+
+            <div
+              className="profile-avatar-wrapper"
+              onClick={() => fileInputRef.current?.click()}
+              title="Click to upload profile photo"
+            >
+              {photoUrl ? (
+                <img src={photoUrl} alt="Avatar" className="profile-avatar-large" />
+              ) : (
+                <div className="profile-avatar-large--fallback">
+                  {name ? name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              <div className="profile-avatar-overlay">📷</div>
+            </div>
+
+            <div className="profile-avatar-controls">
+              <span className="profile-avatar-controls__title">Profile Avatar</span>
+              <span className="profile-avatar-controls__hint">
+                JPG, PNG, or WEBP from your computer
+              </span>
+              <div className="profile-avatar-btn-row">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {photoUrl ? '🔄 Change Photo' : '📷 Upload Photo'}
+                </Button>
+                {photoUrl && (
+                  <Button
+                    type="button"
+                    variant="danger"
+                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                    onClick={handleRemovePhoto}
+                  >
+                    🗑️ Remove
+                  </Button>
+                )}
               </div>
-            )}
-            <div style={{ flex: 1 }}>
-              <Input
-                label="Photo URL"
-                id="profile-photo"
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-              />
             </div>
           </div>
 
@@ -198,8 +297,8 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? <LoadingSpinner size="sm" /> : 'Save Profile Changes'}
+            <Button variant="primary" type="submit" loading={loading}>
+              Save Profile Changes
             </Button>
           </div>
         </form>
@@ -292,9 +391,9 @@ export default function ProfilePage() {
               <Button
                 variant="danger"
                 onClick={handleDeleteAccount}
-                disabled={deleteLoading}
+                loading={deleteLoading}
               >
-                {deleteLoading ? <LoadingSpinner size="sm" /> : 'Yes, Delete My Account'}
+                Yes, Delete My Account
               </Button>
             </div>
           </div>

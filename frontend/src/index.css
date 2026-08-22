@@ -76,6 +76,13 @@ h3 { font-size: var(--font-size-xl); }
   margin-top: 0;
 }
 
+/* Full width for public pages like Landing Page */
+.app__content--full {
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+}
+
 @media (max-width: 900px) {
   .app__content--with-sidebar {
     margin-left: 0;

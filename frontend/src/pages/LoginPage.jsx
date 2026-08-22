@@ -66,6 +66,12 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
+      <div className="auth-back-nav">
+        <Link to="/" className="auth-back-home-link">
+          ← Back to Home
+        </Link>
+      </div>
+
       <div className="auth-card">
         <div className="auth-header">
           <span className="auth-header__icon">🌍</span>
@@ -117,8 +123,8 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <Button variant="primary" type="submit" className="auth-submit-btn" disabled={loading}>
-            {loading ? <LoadingSpinner size="sm" /> : 'Log In'}
+          <Button variant="primary" type="submit" className="auth-submit-btn" loading={loading}>
+            Log In
           </Button>
         </form>
 
@@ -171,8 +177,8 @@ export default function LoginPage() {
                   >
                     Cancel
                   </Button>
-                  <Button variant="primary" type="submit" disabled={forgotStatus.loading}>
-                    {forgotStatus.loading ? <LoadingSpinner size="sm" /> : 'Send Reset Link'}
+                  <Button variant="primary" type="submit" loading={forgotStatus.loading}>
+                    Send Reset Link
                   </Button>
                 </div>
               </form>

@@ -42,7 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=255, unique=True)
-    photo_url = models.URLField(max_length=500, blank=True, null=True)
+    photo_url = models.TextField(blank=True, null=True)
     language_pref = models.CharField(max_length=10, default='en')
     is_admin = models.BooleanField(
         default=False,
@@ -93,7 +93,7 @@ class City(models.Model):
     )
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    image_url = models.URLField(max_length=500, blank=True, null=True)
+    image_url = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'cities'
@@ -142,7 +142,7 @@ class Activity(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, blank=True, null=True)
     cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     duration_minutes = models.PositiveIntegerField(null=True, blank=True)
-    image_url = models.URLField(max_length=500, blank=True, null=True)
+    image_url = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'activities'
@@ -180,7 +180,7 @@ class Trip(models.Model):
         blank=True,
         help_text=_("User's planned maximum budget.")
     )
-    cover_photo_url = models.URLField(max_length=500, blank=True, null=True)
+    cover_photo_url = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(
         default=False,
         help_text=_('Enables the shareable public view.')

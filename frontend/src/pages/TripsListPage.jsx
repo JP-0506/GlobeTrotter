@@ -7,6 +7,36 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 import './TripsListPage.css';
 
+// Client-side image compression to optimize base64 size
+const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const elem = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        elem.width = width;
+        elem.height = height;
+        const ctx = elem.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(elem.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function TripsListPage() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +90,7 @@ export default function TripsListPage() {
     setEditError('');
   };
 
-  const handleEditImageFileChange = (e) => {
+  const handleEditImageFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -69,16 +99,18 @@ export default function TripsListPage() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setEditError('Image size must be under 5MB.');
-      return;
+    try {
+      setEditError('');
+      const compressed = await compressImage(file, 1200, 0.8);
+      setEditFormData((prev) => ({ ...prev, cover_photo_url: compressed }));
+    } catch (err) {
+      console.error('Failed to compress edit image', err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditFormData((prev) => ({ ...prev, cover_photo_url: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setEditFormData((prev) => ({ ...prev, cover_photo_url: reader.result }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSaveEdit = async (e) => {
@@ -366,8 +398,8 @@ export default function TripsListPage() {
                 >
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={editLoading}>
-                  {editLoading ? <LoadingSpinner size="sm" /> : 'Save Changes'}
+                <Button variant="primary" type="submit" loading={editLoading}>
+                  Save Changes
                 </Button>
               </div>
             </form>
@@ -396,9 +428,9 @@ export default function TripsListPage() {
               <Button
                 variant="danger"
                 onClick={handleDeleteTrip}
-                disabled={deleteLoading}
+                loading={deleteLoading}
               >
-                {deleteLoading ? <LoadingSpinner size="sm" /> : 'Yes, Delete Trip'}
+                Yes, Delete Trip
               </Button>
             </div>
           </div>
