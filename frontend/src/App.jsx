@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 
 /* ---- Pages ---- */
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
@@ -15,14 +16,21 @@ import ProfilePage from './pages/ProfilePage';
 
 function AppLayout() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  const isPublicPage = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup';
+  const showSidebar = isAuthenticated && !isPublicPage;
 
   return (
-    <div className={`app ${isAuthenticated ? 'app--authenticated' : 'app--public'}`}>
-      {isAuthenticated && <Sidebar />}
+    <div className={`app ${showSidebar ? 'app--authenticated' : 'app--public'}`}>
+      {showSidebar && <Sidebar />}
 
-      <main className={`app__content ${isAuthenticated ? 'app__content--with-sidebar' : ''}`}>
+      <main className={`app__content ${showSidebar ? 'app__content--with-sidebar' : 'app__content--full'}`}>
         <Routes>
-          {/* Public routes */}
+          {/* Public Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
@@ -46,8 +54,8 @@ function AppLayout() {
             <ProtectedRoute><ProfilePage /></ProtectedRoute>
           } />
 
-          {/* Catch-all: redirect to dashboard */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

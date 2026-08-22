@@ -1,13 +1,15 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/client';
 
 const AuthContext = createContext(null);
 
 /**
  * AuthProvider — wraps the app and provides auth state.
  *
- * Exposes: { user, token, login(), logout(), isAuthenticated }
+ * Exposes: { user, token, login(), logout(), updateUser(), isAuthenticated }
  *
  * - login(token, user) stores creds in localStorage and state
+ * - updateUser(user) updates user state & localStorage
  * - logout() clears everything and navigates to /login
  */
 export function AuthProvider({ children }) {
@@ -18,6 +20,12 @@ export function AuthProvider({ children }) {
   });
 
   const isAuthenticated = !!token;
+
+  const updateUser = useCallback((updatedUser) => {
+    if (!updatedUser) return;
+    localStorage.setItem('gt_user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }, []);
 
   const login = useCallback((newToken, newUser) => {
     localStorage.setItem('gt_token', newToken);
@@ -32,6 +40,21 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
   }, []);
+
+  // Fetch fresh user profile on initial mount/refresh if token exists
+  useEffect(() => {
+    if (token) {
+      api.get('/auth/me')
+        .then((res) => {
+          if (res.data) {
+            updateUser(res.data);
+          }
+        })
+        .catch((err) => {
+          console.warn('Session refresh check', err?.message);
+        });
+    }
+  }, [token, updateUser]);
 
   /* Sync across tabs */
   useEffect(() => {
@@ -49,7 +72,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
@@ -57,9 +80,6 @@ export function AuthProvider({ children }) {
 
 /**
  * Hook — use this in any component to access auth state.
- *
- * Example:
- *   const { user, logout } = useAuth();
  */
 export function useAuth() {
   const ctx = useContext(AuthContext);

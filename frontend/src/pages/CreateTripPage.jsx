@@ -6,6 +6,36 @@ import Input from '../components/Input';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './CreateTripPage.css';
 
+// Client-side image compression to optimize base64 size
+const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const elem = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        elem.width = width;
+        elem.height = height;
+        const ctx = elem.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(elem.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function CreateTripPage() {
   const [searchParams] = useSearchParams();
   const initialCity = searchParams.get('city') || '';
@@ -14,7 +44,7 @@ export default function CreateTripPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
-  const [coverPhoto, setCoverPhoto] = useState(null); // base64 string or image preview
+  const [coverPhoto, setCoverPhoto] = useState(null); // base64 string
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,8 +62,8 @@ export default function CreateTripPage() {
     setEndDate(nextWeek.toISOString().split('T')[0]);
   }, []);
 
-  // Handle direct file upload from device
-  const handleImageFileChange = (e) => {
+  // Handle direct file upload from device with auto-compression
+  const handleImageFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -42,18 +72,17 @@ export default function CreateTripPage() {
       return;
     }
 
-    // Limit to 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image file size must be under 5MB.');
-      return;
+    try {
+      setError('');
+      const compressedDataUrl = await compressImage(file, 1200, 0.8);
+      setCoverPhoto(compressedDataUrl);
+    } catch (err) {
+      console.error('Failed to compress image', err);
+      // Fallback to basic file reader
+      const reader = new FileReader();
+      reader.onloadend = () => setCoverPhoto(reader.result);
+      reader.readAsDataURL(file);
     }
-
-    setError('');
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setCoverPhoto(reader.result);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleRemoveImage = () => {
@@ -188,7 +217,7 @@ export default function CreateTripPage() {
               >
                 <div className="image-dropzone__icon">📷</div>
                 <span className="image-dropzone__title">Click to upload cover photo</span>
-                <span className="image-dropzone__hint">Supports JPG, PNG, WEBP from your device (Max 5MB)</span>
+                <span className="image-dropzone__hint">Supports JPG, PNG, WEBP from your device</span>
               </div>
             ) : (
               <div
@@ -226,8 +255,8 @@ export default function CreateTripPage() {
             >
               Cancel
             </Button>
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? <LoadingSpinner size="sm" /> : 'Save & Build Itinerary →'}
+            <Button variant="primary" type="submit" loading={loading}>
+              Save & Build Itinerary →
             </Button>
           </div>
         </form>

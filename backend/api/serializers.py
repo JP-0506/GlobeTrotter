@@ -22,6 +22,19 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['user_id', 'is_admin', 'created_at', 'updated_at']
 
 
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating user profile fields."""
+    class Meta:
+        model = User
+        fields = ['name', 'email', 'photo_url', 'language_pref']
+
+    def validate_email(self, value):
+        user = self.instance
+        if value and User.objects.filter(email__iexact=value).exclude(user_id=user.user_id).exists():
+            raise serializers.ValidationError("This email is already in use by another account.")
+        return value.lower() if value else value
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for registering a new user."""
     password = serializers.CharField(write_only=True, min_length=6, style={'input_type': 'password'})

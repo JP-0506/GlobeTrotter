@@ -63,11 +63,17 @@ export default function SignupPage() {
 
   return (
     <div className="auth-container">
+      <div className="auth-back-nav">
+        <Link to="/" className="auth-back-home-link">
+          ← Back to Home
+        </Link>
+      </div>
+
       <div className="auth-card">
         <div className="auth-header">
-          <span className="auth-header__icon">✈️</span>
+          <span className="auth-header__icon">🌍</span>
           <h1 className="auth-header__title">Create Account</h1>
-          <p className="auth-header__subtitle">Join GlobeTrotter to start planning multi-city journeys</p>
+          <p className="auth-header__subtitle">Start planning and sharing unforgettable journeys</p>
         </div>
 
         {error && (
@@ -121,8 +127,8 @@ export default function SignupPage() {
             autoComplete="new-password"
           />
 
-          <Button variant="primary" type="submit" className="auth-submit-btn" disabled={loading}>
-            {loading ? <LoadingSpinner size="sm" /> : 'Get Started'}
+          <Button variant="primary" type="submit" className="auth-submit-btn" loading={loading}>
+            Get Started
           </Button>
         </form>
 
